@@ -26,11 +26,59 @@ License:
 """
 
 
+# Compatibility with Python 2.6+
+from __future__ import with_statement
+
+import re
+import os
+import pwd
+from datetime import datetime, timedelta
+
 from process import Process
 
 
 class pyproc:
-    """Main class."""
+    """Main library class.
+
+    Attributes of the class:
+        boot_ts : datetime object of the system boot timestamp
+        procs   : dictionary containing all the running processes on the system;
+                  keys are the process ID and values are Process objects
+        users   : dictionary conatining all the users of the local system; keys
+                  are the users ID and values are the users name
+    """
 
     def __init__(self):
-        pass
+        """Main class constructor.
+
+        The first step calculate the timestamp of the system boot (boot_ts), to
+        decode all processes time infos that are expressed in seconds after the
+        system boot.
+        """
+        # Read system uptime
+        with open("/proc/uptime", "r") as handler:
+            # Seconds of system uptime
+            uptime_sec = int(re.split("\s+", handler.read())[0])
+        # System boot timestamp
+        self.boot_ts = datetime.now() - timedelta(seconds=uptime_sec)
+        # Dictionary with all active processes
+        self.procs = None
+        # Dictionary with all users of the system from password database
+        self.users = None
+        # First load of all values
+        self.up()
+
+    def up(self):
+        """Method to update all pyproc values."""
+        # Reset the dictionary containing the active processes
+        self.procs = {}
+        # Extract all process from the /proc directory
+        for dir_name in os.listdir("/proc"):
+            if os.path.isdir("/proc/" + dir_name) and re.match("\d+$", dir_name):
+                if os.path.exists("/proc/" + dir_name + "/cmdline"):
+                    self.procs[int(dir_name)] = Process(int(dir_name))
+        # Reset the dictionary containing the system user
+        self.procs = {}
+        # Extract a new users list
+        for user in pwd.getpwall():
+            self.users[int(user.pwd_uid)] = user.pw_name
