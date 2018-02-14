@@ -39,8 +39,9 @@ class Process:
     Attributes of a Process object:
         pid         : Process ID
         uid         : Owner user ID
+        uname       : Owner user name
         comm        : Process binary file name
-        stat        : Process actual state (R/S/D/Z/T/t/W/X/x/K/W/P)
+        state       : Process actual state (R/S/D/Z/T/t/W/X/x/K/W/P)
         ppid        : Parent process ID
         pgrp        : Process group ID of the process
         session     : The session ID of the process.
@@ -65,31 +66,33 @@ class Process:
         environ     : Full process environment
     """
 
-    def __init__(self, proc_pid):
+    def __init__(self, proc_pid, users):
         """Process object construction and extraction of values from proc files."""
         self.pid = proc_pid      # Process ID
         self.uid = os.stat("/proc/" + str(self.pid)).st_uid
+        self.uname = users[self.uid]
         # Extract almost all values from stat file
         with open("/proc/" + str(self.pid) + "/stat", "r") as handler:
             stat_content = handler.read()
-        fields = re.split("\s+", stat_content)
-        # Vales extracted from the stat virtual file
-        self.comm = re.match("\((.+)\)", fields[1]).group(1)
-        self.stat = fields[2]
-        self.ppid = int(fields[3])
-        self.pgrp = int(fields[4])
-        self.session = int(fields[5])
-        self.utime = int(fields[13])
-        self.stime = int(fields[14])
-        self.cutime = int(fields[15])
-        self.cstime = int(fields[16])
-        self.nice = int(fields[18])
-        self.num_threads = int(fields[19])
-        self.starttime = int(fields[21])
-        self.vsize = int(fields[22])
-        self.rss = int(fields[23])
-        self.processor = int(fields[38])
-        self.rt_priority = int(fields[39])
+        rgx = re.match("\d+\s+\((.+)\)\s(.+)", stat_content)
+        if rgx:
+            self.comm = rgx.group(1)
+            fields = re.split("\s+", rgx.group(2))
+            self.state = fields[0]
+            self.ppid = int(fields[1])
+            self.pgrp = int(fields[2])
+            self.session = int(fields[3])
+            self.utime = int(fields[11])
+            self.stime = int(fields[12])
+            self.cutime = int(fields[13])
+            self.cstime = int(fields[14])
+            self.nice = int(fields[16])
+            self.num_threads = int(fields[17])
+            self.starttime = int(fields[19])
+            self.vsize = int(fields[20])
+            self.rss = int(fields[21])
+            self.processor = int(fields[36])
+            self.rt_priority = int(fields[37])
         # Values extracted from the cmdline virtual file and remove the last
         # one if empty
         with open("/proc/" + str(self.pid) + "/cmdline", "r") as handler:
@@ -97,7 +100,7 @@ class Process:
         if self.cmdline[-1] == "":
             self.cmdline.pop()
         # Values extracted from the environ virtual file
-        self.environ = None
+        self.environ = {}
         try:
             with open("/proc/" + str(self.pid) + "/environ", "r") as handler:
                 env_vars = handler.read()
@@ -107,5 +110,6 @@ class Process:
                     self.environ[rgx.group(1)] = rgx.group(2)
         except IOError:
             # Probabily the user doesn't have grant enought to read the process
-            # environ file... but we don't care!
+            # environ file... but we don't care... just trace with the None value
+            self.environ = None
             pass
