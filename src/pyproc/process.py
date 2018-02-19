@@ -58,6 +58,8 @@ class Process:
         num_threads : Number of threads in this process
         starttime   : The time the process started after system boot
         vsize       : Virtual memory size in bytes.
+        hvsize      : Human versione of the virtual memory size of the process
+                      (expressed in xx.x*B form, ex. 16.5 MB)
         rss         : Resident Set Size: number of pages the process has in
                       real memory
         processor   : CPU number last executed on.
@@ -66,11 +68,11 @@ class Process:
         environ     : Full process environment
     """
 
-    def __init__(self, proc_pid, users):
+    def __init__(self, proc_pid):
         """Process object construction and extraction of values from proc files."""
         self.pid = proc_pid      # Process ID
         self.uid = os.stat("/proc/" + str(self.pid)).st_uid
-        self.uname = users[self.uid]
+        self.uname = ""
         # Extract almost all values from stat file
         with open("/proc/" + str(self.pid) + "/stat", "r") as handler:
             stat_content = handler.read()
@@ -109,7 +111,35 @@ class Process:
                 if rgx:
                     self.environ[rgx.group(1)] = rgx.group(2)
         except IOError:
-            # Probabily the user doesn't have grant enought to read the process
+            # Probabily the user doesn't have enought grant to read the process
             # environ file... but we don't care... just trace with the None value
             self.environ = None
             pass
+        # Base unit
+        unit = "B"
+        size = self.vsize
+        while size > 1024 and unit != "Y":
+            size = (size / 1024)
+            # Mega Byte
+            if unit == "B":
+                unit = "M"
+            # Giga Byte
+            elif unit == "M":
+                unit = "G"
+            # Tera Byte
+            elif unit == "G":
+                unit = "T"
+            # Peta Byte
+            elif unit == "T":
+                unit = "P"
+            # Exa Byte
+            elif unit == "P":
+                unit = "E"
+            # Zetta Byte
+            elif unit == "E":
+                unit = "Z"
+            # Yotta Byte
+            elif unit == "Z":
+                unit = "Y"
+        # Set the value of the class attribute
+        self.hvsize = "{0:.1f}{1}".format(size, unit)

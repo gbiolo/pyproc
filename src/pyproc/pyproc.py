@@ -1,5 +1,5 @@
 
-"""pyproc is a library to easily read Linux running processes info.
+"""PyProc is a library to easily read Linux running processes info.
 
 Description:
     The main target of the project is to provide an easily way to access to
@@ -37,7 +37,7 @@ from process import Process
 from proclist import ProcList
 
 
-class pyproc:
+class PyProc:
     """Main library class.
 
     Attributes of the class:
@@ -57,35 +57,24 @@ class pyproc:
         """
         # System boot timestap to -1 value
         self.boot_ts = -1
-        # Dictionary with all active processes
-        self.procs = None
         # Dictionary with all users of the system from password database
-        self.users = None
-        # First read of the running processes
-        self.up()
-
-    def up(self):
-        """Method to update all pyproc values."""
-        # Reset the dictionary containing the system users
         self.users = {}
-        # Extract a new users list
+
+    def __call__(self):
+        self.users = {}
+        # Extract all the system users and insert into the dictionary
         for user in pwd.getpwall():
             self.users[int(user.pw_uid)] = user.pw_name
-        # Reset the dictionary containing the active processes
-        self.procs = {}
-        # Extract all process from the /proc directory
+        # A new ProcList object to return to the user
+        new_proclist = ProcList(self.users)
+        # Extract all process from the /proc directory and add to the ProcList
         for dir_name in os.listdir("/proc"):
             if os.path.isdir("/proc/" + dir_name) and re.match("\d+$", dir_name):
                 if os.path.exists("/proc/" + dir_name + "/cmdline"):
-                    self.procs[int(dir_name)] = Process(int(dir_name), self.users)
-
-    def get_procs(self):
-        # If the process dictionary is empty return None
-        if not self.procs:
-            return None
-        # Otherwise create a new ProcList containing all the running processes
-        else:
-            new_proclist = ProcList(self.users)
-            for pid in self.procs:
-                new_proclist.append(self.procs[pid])
-            return new_proclist
+                    new_proc = Process(int(dir_name))
+                    if new_proc:
+                        new_proc.uname = self.users[new_proc.uid]
+                        new_proc.starttime += self.boot_ts
+                        new_proclist.append(new_proc)
+        # Return the new ProcList just created
+        return new_proclist

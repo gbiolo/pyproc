@@ -67,7 +67,7 @@ class ProcList:
     def append(self, proc):
         self.proclist.append(proc)
 
-    def filter_user(self, user):
+    def select_user(self, user):
         # User id
         user_id = user
         # Check if the user passed the right argument type
@@ -101,9 +101,9 @@ class ProcList:
             # Return the extracted ProcList
             return new_proclist
 
-    def filter_bin(self, bin_name):
+    def search_bin(self, bin_name):
         if type(bin_name) is not str:
-            raise TypeError("Binary name must be indicated with a string")
+            raise TypeError("Binary search must be indicated with a string")
         # If the proclist is empty return a None value
         if len(self.proclist) == 0:
             return None
@@ -113,11 +113,11 @@ class ProcList:
             # Insertion into the new ProcList of all processes with the right
             # binary command
             for proc in self.proclist:
-                if proc.comm == bin_name:
+                if re.search(bin_name, proc.comm):
                     new_proclist.append(proc)
             return new_proclist
 
-    def filter_cmd(self, cmdline_arg):
+    def search_cmdline(self, cmdline_arg):
         if type(cmdline_arg) is not str:
             raise TypeError("Comand argument must be indicated with a string")
         # If the proclist is empty return a None value

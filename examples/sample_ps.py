@@ -3,18 +3,22 @@
 # Import the new print function (can be removed with the python3 interpreter)
 from __future__ import print_function
 
+# Import the pyproc libraries
 import sys
-
-# Import the sheel-menu libraries
 sys.path.append("../src/pyproc")
-from pyproc import pyproc
+from pyproc import PyProc
 
+# PyProc library object
+pyproc = PyProc()
+
+# Output format
+output_format = "{:<10} {:<6} {:<6} {:<6} {:<20} {:<6} {}"
 # Print ps-like header
-print("{:<10} {:<6} {:<6} {:<6} {:<20} {}".format("USER", "STATE", "PID", "PPID",
-                                                  "BINARY", "CMDLINE"))
+
+print(output_format.format("USER", "STATE", "PID", "PPID", "BINARY", "VSIZE",
+                           "CMDLINE"))
 
 # Print all processes values
-for proc in pyproc().get_procs():
-    print("{:<10} {:<6} {:<6} {:<6} {:<20} {}".format(
-          proc.uname, proc.state, proc.pid, proc.ppid,
-          proc.comm, " ".join(proc.cmdline)))
+for proc in pyproc().select_user("giuseppe").search_cmdline("sh"):
+    print(output_format.format(proc.uname, proc.state, proc.pid, proc.ppid,
+                               proc.comm, proc.hvsize, " ".join(proc.cmdline)))
