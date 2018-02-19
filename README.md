@@ -1,2 +1,2 @@
-# pyproc
-Library to easily read Linux running processes info
+# PyProc
+Library to easily read Linux running processes info.
