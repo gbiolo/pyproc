@@ -31,6 +31,7 @@ from __future__ import with_statement
 
 import re
 import os
+from decimal import Decimal
 
 
 class Process:
@@ -70,8 +71,9 @@ class Process:
 
     def __init__(self, proc_pid):
         """Process object construction and extraction of values from proc files."""
-        self.pid = proc_pid      # Process ID
-        self.uid = os.stat("/proc/" + str(self.pid)).st_uid
+        self.pid = proc_pid  # Process ID
+        self.uid = os.stat("/proc/" + str(self.pid)).st_uid  # User ID
+        self.starttime = os.stat("/proc/" + str(self.pid)).st_ctime
         self.uname = ""
         # Extract almost all values from stat file
         with open("/proc/" + str(self.pid) + "/stat", "r") as handler:
@@ -90,7 +92,6 @@ class Process:
             self.cstime = int(fields[14])
             self.nice = int(fields[16])
             self.num_threads = int(fields[17])
-            self.starttime = int(fields[19])
             self.vsize = int(fields[20])
             self.rss = int(fields[21])
             self.processor = int(fields[36])
@@ -117,11 +118,14 @@ class Process:
             pass
         # Base unit
         unit = "B"
-        size = self.vsize
+        size = Decimal(self.vsize)
         while size > 1024 and unit != "Y":
             size = (size / 1024)
-            # Mega Byte
+            # Kilo Byte
             if unit == "B":
+                unit = "K"
+            # Mega Byte
+            elif unit == "K":
                 unit = "M"
             # Giga Byte
             elif unit == "M":
