@@ -49,14 +49,7 @@ class PyProc:
     """
 
     def __init__(self):
-        """Main class constructor.
-
-        The first step calculate the timestamp of the system boot (boot_ts), to
-        decode all processes time infos that are expressed in seconds after the
-        system boot.
-        """
-        # System boot timestap to -1 value
-        self.boot_ts = -1
+        """Main class constructor. Just declare and empty dictionary for the users."""
         # Dictionary with all users of the system from password database
         self.users = {}
 
@@ -69,12 +62,14 @@ class PyProc:
         new_proclist = ProcList(self.users)
         # Extract all process from the /proc directory and add to the ProcList
         for dir_name in os.listdir("/proc"):
-            if os.path.isdir("/proc/" + dir_name) and re.match("\d+$", dir_name):
-                if os.path.exists("/proc/" + dir_name + "/cmdline"):
-                    new_proc = Process(int(dir_name))
-                    if new_proc:
-                        new_proc.uname = self.users[new_proc.uid]
-                        new_proc.starttime += self.boot_ts
-                        new_proclist.append(new_proc)
+            try:
+                if os.path.isdir("/proc/" + dir_name) and re.match("\d+$", dir_name):
+                    if os.path.exists("/proc/" + dir_name + "/cmdline"):
+                        new_proc = Process(int(dir_name))
+                        if new_proc:
+                            new_proc.uname = self.users[new_proc.uid]
+                            new_proclist.append(new_proc)
+            except Exception:
+                pass
         # Return the new ProcList just created
         return new_proclist
