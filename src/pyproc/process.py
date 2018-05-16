@@ -70,7 +70,7 @@ class Process:
     """
 
     def __init__(self, proc_pid):
-        """Process object construction and extraction of values from proc files."""
+        """Process object construction and extraction of values from proc files"""
         self.pid = proc_pid  # Process ID
         self.uid = os.stat("/proc/" + str(self.pid)).st_uid  # User ID
         self.starttime = os.stat("/proc/" + str(self.pid)).st_ctime
@@ -147,3 +147,20 @@ class Process:
                 unit = "Y"
         # Set the value of the class attribute
         self.hvsize = "{0:.1f}{1}".format(size, unit)
+
+    def __eq__(self, ref_proc):
+        """Check if two Process object rappresent the same system process.
+
+        Two Process object rappresent the same process only if:
+          1. the "pid" attributes have the same value
+          2. the "comm" attributes have the same value (same binary name)
+          3. the "starttime" is the same for the two Process objects
+        Othwerwise the two object desn't rappresent the same process.
+        """
+        if self.pid != ref_proc.pid:
+            return False
+        if self.comm != ref_proc.comm:
+            return False
+        if self.starttime != ref_proc.starttime:
+            return False
+        return True
