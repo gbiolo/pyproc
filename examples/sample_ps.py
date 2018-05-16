@@ -12,13 +12,13 @@ from pyproc import PyProc
 pyproc = PyProc()
 
 # Output format
-output_format = "{:<10} {:<6} {:<6} {:<6} {:<20} {:<6} {}"
+output_format = "{:<10} {:<6} {:<6} {:<6} {:<20} {:<6} {:<12} {}"
 # Print ps-like header
 
 print(output_format.format("USER", "STATE", "PID", "PPID", "BINARY", "VSIZE",
-                           "CMDLINE"))
+                           "START_EPOCH", "CMDLINE"))
 
 # Print all processes values
 for proc in pyproc().select_user("giuseppe").search_cmdline("sh"):
     print(output_format.format(proc.uname, proc.state, proc.pid, proc.ppid,
-                               proc.comm, proc.hvsize, " ".join(proc.cmdline)))
+                               proc.comm, proc.hvsize, proc.starttime, " ".join(proc.cmdline)))
