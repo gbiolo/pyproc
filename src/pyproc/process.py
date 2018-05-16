@@ -35,7 +35,7 @@ from decimal import Decimal
 
 
 class Process:
-    """Object that rappresent a running process on the current Linux system.
+    """Object that represent a running process on the current Linux system.
 
     Attributes of a Process object:
         pid         : Process ID
@@ -149,13 +149,13 @@ class Process:
         self.hvsize = "{0:.1f}{1}".format(size, unit)
 
     def __eq__(self, ref_proc):
-        """Check if two Process object rappresent the same system process.
+        """Check if two Process object represent the same system process.
 
-        Two Process object rappresent the same process only if:
+        Two Process object represent the same process only if:
           1. the "pid" attributes have the same value
           2. the "comm" attributes have the same value (same binary name)
           3. the "starttime" is the same for the two Process objects
-        Othwerwise the two object desn't rappresent the same process.
+        Othwerwise the two object desn't represent the same process.
         """
         if self.pid != ref_proc.pid:
             return False
