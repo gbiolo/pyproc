@@ -70,7 +70,7 @@ class Process:
     """
 
     def __init__(self, proc_pid):
-        """Process object construction and extraction of values from proc files"""
+        """Process object construction and extraction of values from proc files."""
         self.pid = proc_pid  # Process ID
         self.uid = os.stat("/proc/" + str(self.pid)).st_uid  # User ID
         self.starttime = os.stat("/proc/" + str(self.pid)).st_ctime
@@ -148,7 +148,7 @@ class Process:
         # Set the value of the class attribute
         self.hvsize = "{0:.1f}{1}".format(size, unit)
 
-    def __eq__(self, ref_proc):
+    def __eq__(self, proc):
         """Check if two Process object represent the same system process.
 
         Two Process object represent the same process only if:
@@ -157,10 +157,38 @@ class Process:
           3. the "starttime" is the same for the two Process objects
         Othwerwise the two object desn't represent the same process.
         """
-        if self.pid != ref_proc.pid:
+        if self.pid != proc.pid:
             return False
-        if self.comm != ref_proc.comm:
+        if self.comm != proc.comm:
             return False
-        if self.starttime != ref_proc.starttime:
+        if self.starttime != proc.starttime:
             return False
         return True
+
+    def __lt__(self, proc):
+        """Magic method to compare if a Process is "lower" than another one."""
+        if self.pid < proc.pid:
+            return True
+        else:
+            return False
+
+    def __gt__(self, proc):
+        """Magic method to compare if a Process is "greater" than another one."""
+        if self.pid > proc.pid:
+            return True
+        else:
+            return False
+
+    def __le__(self, proc):
+        """Silly method to compare if a Process is "lower or equal" to another one."""
+        if self.pid <= proc.pid:
+            return True
+        else:
+            return False
+
+    def __ge__(self, proc):
+        """Silly method to compare if a Process is "greater or equal" to another one."""
+        if self.pid >= proc.pid:
+            return True
+        else:
+            return False
